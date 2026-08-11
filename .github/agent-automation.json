@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "infrastructure": {
+    "repository": "GeorgesGil/github-agent-automations",
+    "sha": "c3f9bc154840fd144a6ff0185544523bddbf7d8f"
+  },
+  "enrollment": {
+    "mode": "public-test-opt-in",
+    "source": "central-scanner"
+  },
+  "stack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null,
+    "monorepo": false,
+    "build": false,
+    "tests": false,
+    "lint": false,
+    "typecheck": false,
+    "coverage": false,
+    "databases": [],
+    "orms": [],
+    "docker": false,
+    "ci": false,
+    "infrastructure": []
+  }
+}
