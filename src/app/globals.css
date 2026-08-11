@@ -2,11 +2,50 @@
 
 :root {
   color-scheme: dark;
-  background: #05070f;
-  color: #f7f8fc;
+
+  /* Canonical palette — single source of truth, per docs/visual-direction.md. */
+  --ink: #050713;
+  --navy: #0a1a3a;
+  --white: #f7f8fc;
+  --silver: #b7c2d2;
+  --gold: #c7a34b;
+  --pitch: #102b25;
+
+  /* Layout primitives. */
+  --container-width: 80rem;
+  --gutter: clamp(1rem, 4vw, 2.5rem);
+  --section-space: clamp(4rem, 10vw, 8rem);
+
+  /* Fluid type scale (clamped between mobile and desktop). */
+  --text-display: clamp(2.75rem, 1.25rem + 5vw, 5.5rem);
+  --text-title: clamp(1.5rem, 0.875rem + 2vw, 2.5rem);
+  --text-body: clamp(1rem, 0.9375rem + 0.25vw, 1.125rem);
+
+  /* Canvas paint so overscroll matches the ink base. */
+  background: var(--ink);
+  color: var(--white);
 }
 
-* {
+/*
+ * Map canonical tokens into the Tailwind v4 theme. `inline` inlines the
+ * canonical var reference directly into each generated utility, so the six
+ * palette props above stay the single source of truth. Font variables are
+ * injected on <html> by next/font in the root layout.
+ */
+@theme inline {
+  --color-ink: var(--ink);
+  --color-navy: var(--navy);
+  --color-white: var(--white);
+  --color-silver: var(--silver);
+  --color-gold: var(--gold);
+  --color-pitch: var(--pitch);
+
+  --font-display: var(--font-oswald);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-plex-mono);
+}
+
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
@@ -17,5 +56,64 @@ body {
 }
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--ink);
+  color: var(--white);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
+
+/* Smooth scrolling only for users who did not request reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Focus ring consistent with the editorial palette. */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* Skip link: visually hidden until it receives keyboard focus. */
+.skip-link {
+  position: fixed;
+  inset-block-start: var(--gutter);
+  inset-inline-start: var(--gutter);
+  z-index: 100;
+  padding: 0.625rem 1rem;
+  border-radius: 0.25rem;
+  background: var(--gold);
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 4rem));
+  transition: transform 150ms ease-out;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/*
+ * Stable visual frame (see SceneFrame). It never transforms or animates
+ * itself; later phases animate descendants only, so this frame is identical
+ * in the stable, reduced-motion, and JS-off states.
+ */
+.scene-frame {
+  background:
+    radial-gradient(90rem 42rem at 85% -5%, var(--navy) 0%, transparent 70%),
+    linear-gradient(180deg, var(--ink) 0%, var(--pitch) 130%);
+}
+
+/*
+ * Reduced-motion baseline: every animation, transition, and scroll effect
+ * collapses to a static presentation (docs/animation-system.md).
+ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
