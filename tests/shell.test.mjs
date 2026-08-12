@@ -104,24 +104,30 @@ test("shell primitives are server components without client directives", async (
 });
 
 test(
-  "header avoids dead anchors and footer carries the non-affiliation notice",
+  "header composes the client menu overlay and keeps the server boundary",
   async () => {
     const header = await read("src/packages/ui/SiteHeader.tsx");
     assert.match(header, /aria-label="Site"/);
     assert.match(header, /href="\/"/);
+    assert.match(header, /MenuOverlay/);
+    assert.match(header, /from\s+["']@\/packages\/ui\/MenuOverlay["']/);
+    assert.doesNotMatch(header, /"use client"/);
     assert.doesNotMatch(header, /href="#scene/);
+    assert.doesNotMatch(header, /aria-expanded/);
     const footer = await read("src/packages/ui/SiteFooter.tsx");
     assert.match(footer, /independent, non-commercial concept/);
     assert.match(footer, /Not affiliated/);
   },
 );
 
-test("the home page composes the shell without feature chapters", async () => {
+test("the home page renders the seven scene sections from the scenes fixture", async () => {
   const page = await read("src/app/page.tsx");
   assert.match(page, /from "@\/packages\/ui"/);
+  assert.match(page, /from\s+["']@\/packages\/content["']/);
   assert.match(page, /from\s+["']@\/packages\/hero\/Hero["']/);
   assert.match(page, /<Hero \/>/);
   assert.match(page, /<Section/);
+  assert.match(page, /scenes\.map\(/);
   assert.doesNotMatch(page, /<SceneFrame/);
   assert.doesNotMatch(page, /<Container/);
   assert.doesNotMatch(page, /<main/);
