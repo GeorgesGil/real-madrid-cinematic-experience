@@ -119,9 +119,11 @@ test(
 test("the home page composes the shell without feature chapters", async () => {
   const page = await read("src/app/page.tsx");
   assert.match(page, /from "@\/packages\/ui"/);
-  assert.match(page, /<SceneFrame/);
+  assert.match(page, /from\s+["']@\/packages\/hero\/Hero["']/);
+  assert.match(page, /<Hero \/>/);
   assert.match(page, /<Section/);
-  assert.match(page, /<Container/);
+  assert.doesNotMatch(page, /<SceneFrame/);
+  assert.doesNotMatch(page, /<Container/);
   assert.doesNotMatch(page, /<main/);
   assert.doesNotMatch(page, /"use client"/);
   assert.doesNotMatch(page, /gsap/);
