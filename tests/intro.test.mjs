@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
+  createIntroCompleteSignal,
   createIntroState,
   introReducer,
   isIntroComplete,
@@ -87,6 +88,75 @@ test("shouldPlayIntro allows the trace only when motion is allowed", () => {
   assert.equal(shouldPlayIntro(false), true);
 });
 
+test("createIntroCompleteSignal starts uncompleted and latches on emit", () => {
+  const signal = createIntroCompleteSignal();
+  assert.equal(signal.read(), false);
+  signal.emit();
+  assert.equal(signal.read(), true);
+});
+
+test("emit notifies subscribers once the completion latches", () => {
+  const signal = createIntroCompleteSignal();
+  let notified = 0;
+  signal.subscribe(() => {
+    notified += 1;
+  });
+  signal.emit();
+  assert.equal(notified, 1);
+  assert.equal(signal.read(), true);
+});
+
+test("unsubscribe stops further notifications", () => {
+  const signal = createIntroCompleteSignal();
+  let notified = 0;
+  const unsubscribe = signal.subscribe(() => {
+    notified += 1;
+  });
+  unsubscribe();
+  signal.emit();
+  assert.equal(notified, 0);
+  assert.equal(signal.read(), true);
+});
+
+test("emit is idempotent and late subscribers see the latched value", () => {
+  const signal = createIntroCompleteSignal();
+  let first = 0;
+  let second = 0;
+  signal.subscribe(() => {
+    first += 1;
+  });
+  signal.emit();
+  signal.emit();
+  signal.subscribe(() => {
+    second += 1;
+  });
+  signal.emit();
+  assert.equal(first, 1, "listener notified exactly once");
+  assert.equal(second, 0, "late listener is not notified for past emission");
+  assert.equal(signal.read(), true);
+});
+
+test("signal instances are independent", () => {
+  const a = createIntroCompleteSignal();
+  const b = createIntroCompleteSignal();
+  a.emit();
+  assert.equal(a.read(), true);
+  assert.equal(b.read(), false);
+  b.emit();
+  assert.equal(b.read(), true);
+});
+
+test("the intro-complete signal seam stays JSX- and DOM-free for Node stripping", async () => {
+  const source = await read("src/packages/intro/intro-signal.ts");
+  assert.doesNotMatch(source, /"use client"/);
+  assert.doesNotMatch(source, /from\s+["']react["']/);
+  assert.doesNotMatch(source, /\bdocument\b/);
+  assert.doesNotMatch(source, /\bwindow\b/);
+  assert.doesNotMatch(source, /<[A-Za-z]/);
+  assert.match(source, /export function createIntroCompleteSignal/);
+  assert.match(source, /export const introCompleteSignal/);
+});
+
 test("the seam stays JSX- and dependency-free for Node type stripping", async () => {
   const source = await read("src/packages/intro/intro.ts");
   assert.doesNotMatch(source, /"use client"/);
@@ -113,6 +183,28 @@ test("the adapter is client-only and touches document/window only inside effects
   assert.doesNotMatch(beforeFirstEffect, /\bwindow\b/);
 });
 
+test("CinematicIntro publishes the completion signal on the dismiss animation end", async () => {
+  const adapter = await read("src/packages/intro/CinematicIntro.tsx");
+  assert.match(adapter, /introCompleteSignal\.emit\(\)/);
+  assert.match(adapter, /addEventListener\("animationend"/);
+  assert.match(adapter, /removeEventListener\("animationend"/);
+  assert.match(adapter, /event\.animationName === "cinematic-intro-dismiss"/);
+  assert.match(adapter, /dispatch\(\{ type: "complete" \}\)/);
+  assert.match(adapter, /ref=\{rootRef\}/);
+});
+
+test("the intro-complete adapter is a single-export client deep module", async () => {
+  const adapter = await read("src/packages/intro/use-intro-complete.ts");
+  assert.match(adapter, /"use client"/);
+  assert.match(adapter, /useSyncExternalStore/);
+  assert.match(adapter, /introCompleteSignal/);
+  assert.match(adapter, /export function useIntroComplete/);
+  assert.doesNotMatch(adapter, /export\s*\{/);
+  assert.doesNotMatch(adapter, /\bdocument\b/);
+  assert.doesNotMatch(adapter, /\bwindow\b/);
+  assert.doesNotMatch(adapter, /useEffect/);
+});
+
 test("the intro barrel exports only the seam and documents the deep adapter", async () => {
   const index = await read("src/packages/intro/index.ts");
   assert.match(index, /introReducer/);
@@ -123,6 +215,16 @@ test("the intro barrel exports only the seam and documents the deep adapter", as
   assert.doesNotMatch(index, /export\s*\{[^}]*\bCinematicIntro\b/);
   assert.doesNotMatch(index, /from\s+["']\.\/CinematicIntro["']/);
   assert.doesNotMatch(index, /\.tsx/);
+});
+
+test("the barrel exports the completion signal seam but never the client adapter", async () => {
+  const index = await read("src/packages/intro/index.ts");
+  assert.match(index, /createIntroCompleteSignal/);
+  assert.match(index, /introCompleteSignal/);
+  assert.match(index, /IntroCompleteSignal/);
+  assert.match(index, /use-intro-complete/);
+  assert.doesNotMatch(index, /export\s*\{[^}]*\buseIntroComplete\b/);
+  assert.doesNotMatch(index, /from\s+["']\.\/use-intro-complete["']/);
 });
 
 test("page mounts the intro adapter before the stable hero and keeps guard regexes", async () => {

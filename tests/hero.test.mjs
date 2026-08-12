@@ -118,6 +118,26 @@ test("the reveal no-ops before creating any GSAP context when the query is null"
   assert.match(hook, /return;/);
 });
 
+test("the reveal waits on the intro-completion signal before any GSAP context", async () => {
+  const hook = await read("src/packages/hero/use-aperture-reveal.ts");
+  assert.match(
+    hook,
+    /from\s+["']@\/packages\/intro\/use-intro-complete["']/,
+  );
+  assert.match(hook, /useIntroComplete\(\)/);
+  const guardIndex = hook.indexOf("if (!introComplete)");
+  const queryIndex = hook.indexOf("const query = heroSceneQuery(");
+  const mmIndex = hook.indexOf("gsap.matchMedia(");
+  assert.ok(guardIndex > -1, "completion guard present");
+  assert.ok(guardIndex < queryIndex, "guard runs before the query is computed");
+  assert.ok(
+    guardIndex < mmIndex,
+    "guard runs before any matchMedia context is created",
+  );
+  assert.match(hook, /dependencies:\s*\[preference,\s*introComplete\]/);
+  assert.match(hook, /revertOnUpdate:\s*true/);
+});
+
 test("client adapters stay single-export for the react-refresh rule", async () => {
   const hook = await read("src/packages/hero/use-aperture-reveal.ts");
   const aperture = await read("src/packages/hero/ApertureGeometry.tsx");
