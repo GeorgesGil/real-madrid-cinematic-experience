@@ -1,11 +1,16 @@
 import Link from "next/link";
 
+import { MenuOverlay } from "@/packages/ui/MenuOverlay";
+
 import { Container } from "./Container";
 
 /**
- * Site-level shell header. Scene navigation is intentionally out of scope
- * until the scenes land in a later phase, so links never point at dead
- * anchors (see docs/adr/0001-design-tokens-typography-shell.md).
+ * Site-level shell header. The wordmark and Home link stay server-rendered;
+ * the chapter menu is composed as a client overlay via deep import
+ * (`@/packages/ui/MenuOverlay`, ADR 0002 §1), so no client JS enters the
+ * route bundle until the menu mounts. Chapter anchors live only in
+ * `MenuOverlay` and resolve to sections derived from the same `scenes`
+ * fixture on the home page (ADR 0001 no-dead-links rule).
  */
 export function SiteHeader() {
   return (
@@ -29,6 +34,7 @@ export function SiteHeader() {
               </li>
             </ul>
           </nav>
+          <MenuOverlay />
         </div>
       </Container>
     </header>

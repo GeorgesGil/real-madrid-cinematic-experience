@@ -61,6 +61,61 @@ body {
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
 }
 
+/*
+ * Scroll lock while a modal overlay is open: the OverlayController adapter
+ * sets `data-scroll-locked` on <html>; this rule consumes that attribute.
+ * Deliberately top-level (outside any media query) so the lock stays active
+ * under reduced motion (ADR 0002 §3 invariant).
+ */
+html[data-scroll-locked] {
+  overflow: hidden;
+}
+
+/*
+ * Full-screen chapter menu (src/packages/ui/MenuOverlay.tsx). Fixed ink
+ * backdrop above the sticky header (z-40) but below the skip link (z-100),
+ * with a scrollable chapter list set in the editorial type system
+ * (docs/visual-direction.md).
+ */
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow-y: auto;
+  background: var(--ink);
+  color: var(--white);
+  padding-block: var(--section-space);
+  padding-inline: var(--gutter);
+}
+
+.menu-overlay-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: var(--container-width);
+  margin-inline: auto;
+}
+
+.menu-overlay-link {
+  display: block;
+  padding-block: 0.75rem;
+  font-family: var(--font-oswald), sans-serif;
+  font-size: var(--text-title);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  color: var(--white);
+  text-decoration: none;
+  transition: color 150ms ease-out;
+}
+
+.menu-overlay-link:hover,
+.menu-overlay-link:focus-visible {
+  color: var(--gold);
+}
+
 /* Smooth scrolling only for users who did not request reduced motion. */
 @media (prefers-reduced-motion: no-preference) {
   html {

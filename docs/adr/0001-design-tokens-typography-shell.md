@@ -91,8 +91,9 @@ handlers, no runtime JS).
 
 - `SkipLink` — `href="#main"`, `.skip-link` visually hidden until focus.
 - `SiteHeader` — semantic `<header>` with wordmark and a minimal
-  `<nav aria-label="Site">`. Scene anchors are intentionally excluded until
-  the scenes exist, avoiding dead links.
+  `<nav aria-label="Site">`, composing the client chapter menu
+  (`MenuOverlay`) via deep import. Chapter anchors and their targets are
+  governed by the no-dead-links rule in section 8.
 - `SiteFooter` — semantic `<footer>` with the mandatory independent,
   non-affiliated notice (CONTEXT.md / primary-sources §2).
 - `Container` — max-width wrapper owning the responsive gutter.
@@ -113,10 +114,27 @@ Root layout order: `SkipLink → SiteHeader → <main id="main"> → SiteFooter`
   collapse to `0.01ms` and `scroll-behavior` is forced to `auto`.
 - A gold `:focus-visible` ring provides a palette-consistent focus indicator.
 
+### 8. Chapter anchors and the no-dead-links rule
+
+Phase 2C lands the full-screen chapter menu. The no-dead-links rule is
+satisfied structurally rather than by hand-maintained href lists: both the
+menu links in `MenuOverlay` and the home-page section ids are rendered from
+the same `scenes` fixture in `@/packages/content` via `scenes.map(...)` (the
+overlay renders `` href={`#${scene.id}`} ``, the page renders
+`<Section id={scene.id} ... />`). An id can therefore never appear in the
+menu without a matching rendered section on the same page, and adding a
+chapter to the fixture automatically creates both the link and its target.
+`SiteHeader` remains a server component and composes the client `MenuOverlay`
+through a deep import (`@/packages/ui/MenuOverlay`, ADR 0002 §1); the `ui`
+barrel stays server-only and never re-exports the overlay.
+
 ## Consequences
 
 - The palette, fonts, and landmarks are stable inputs for every later phase;
   scenes compose inside `SceneFrame`/`Section` without redefining tokens.
+- Chapter anchors and their targets derive from the same `scenes` fixture, so
+  the no-dead-links rule holds by construction; the `ui` barrel stays
+  server-only with `MenuOverlay` consumed as a deep import.
 - `format:check`, `test`, `typecheck`, and `lint` exercise the shell directly.
 - Later phases must keep canonical props defined only in `globals.css` and
   must not assume `#fff` for `--color-white`.
