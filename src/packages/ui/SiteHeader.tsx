@@ -14,9 +14,7 @@ export function SiteHeader() {
     >
       <Container>
         <div className="flex items-center justify-between gap-6 min-h-16">
-          <p
-            className="font-display text-lg font-semibold tracking-[0.18em] text-white"
-          >
+          <p className="font-display text-lg font-semibold tracking-[0.18em] text-white">
             RM — Cinematic Concept
           </p>
           <nav aria-label="Site">

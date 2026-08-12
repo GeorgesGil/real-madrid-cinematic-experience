@@ -36,9 +36,7 @@ export function Section({
     >
       <Container>
         {kicker ? (
-          <p
-            className="font-mono text-xs uppercase tracking-[0.3em] text-gold"
-          >
+          <p className="font-mono text-xs uppercase tracking-[0.3em] text-gold">
             {kicker}
           </p>
         ) : null}
