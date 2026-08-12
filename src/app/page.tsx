@@ -1,9 +1,11 @@
+import { CinematicIntro } from "@/packages/intro/CinematicIntro";
 import { SceneTimeline } from "@/packages/motion/SceneTimeline";
 import { Container, SceneFrame, Section } from "@/packages/ui";
 
 export default function Home() {
   return (
     <>
+      <CinematicIntro />
       <SceneTimeline>
         <SceneFrame>
           <Container className="flex min-h-[70svh] items-end">

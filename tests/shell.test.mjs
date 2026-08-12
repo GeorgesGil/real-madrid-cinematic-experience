@@ -69,7 +69,7 @@ test(
     assert.match(layout, /<html\s+lang="en"/);
     assert.match(layout, /SkipLink/);
     assert.match(layout, /SiteHeader/);
-    assert.match(layout, /<main id="main">/);
+    assert.match(layout, /<main\s+id="main"[^>]*>/);
     assert.match(layout, /SiteFooter/);
     assert.match(layout, /from "@\/packages\/ui"/);
   },
