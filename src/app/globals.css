@@ -117,3 +117,120 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/*
+ * Cinematic intro layer (see src/packages/intro/CinematicIntro.tsx). The
+ * static crest mark is always present in SSR HTML; the trace animation below
+ * runs only when motion is allowed and ends at `visibility: hidden` with
+ * `animation-fill-mode: forwards`, so the layer self-dismisses without
+ * JavaScript and content stays reachable with JS off.
+ */
+.cinematic-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--gold);
+  visibility: visible;
+  opacity: 1;
+}
+
+.cinematic-intro-mark {
+  width: clamp(4.5rem, 14vw, 7.5rem);
+  height: auto;
+}
+
+.cinematic-intro-mark-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.cinematic-intro-mark-svg path {
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Motion allowed: resource-aware crest trace, then self-dismissal. */
+.cinematic-intro[data-trace="true"] {
+  animation: cinematic-intro-dismiss 2.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.cinematic-intro[data-trace="true"] .cinematic-intro-mark-svg path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: cinematic-intro-trace 1.6s ease-out forwards;
+}
+
+.cinematic-intro[data-trace="true"] .cinematic-intro-mark-svg circle {
+  opacity: 0;
+  transition: opacity 1.2s ease-out;
+}
+
+@keyframes cinematic-intro-trace {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes cinematic-intro-dismiss {
+  0%, 70% {
+    opacity: 1;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+/*
+ * Reduced-motion contract (docs/animation-system.md Opening row): immediate
+ * static mark, ≤200ms fade. The mark keeps its static form (no trace) and
+ * the layer fades out. The `!important` declarations intentionally override
+ * the global collapse block above so the fade stays perceptible under
+ * `prefers-reduced-motion: reduce`.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-intro[data-trace="false"] {
+    animation-name: cinematic-intro-dismiss !important;
+    animation-duration: 180ms !important;
+    animation-timing-function: ease-out !important;
+    animation-fill-mode: forwards !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/*
+ * Skip control: visible, keyboard-reachable, and present in the static
+ * markup so keyboard and assistive-technology users can always leave the
+ * intro.
+ */
+.cinematic-intro-skip {
+  position: absolute;
+  inset-inline-end: var(--gutter);
+  inset-block-end: var(--gutter);
+  padding: 0.625rem 1.25rem;
+  border: 1px solid var(--gold);
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--gold);
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 150ms ease-out, color 150ms ease-out;
+}
+
+.cinematic-intro-skip:hover,
+.cinematic-intro-skip:focus-visible {
+  background: var(--gold);
+  color: var(--ink);
+}

@@ -53,7 +53,9 @@ export default function RootLayout({
         <MotionPreferenceProvider>
           <SkipLink />
           <SiteHeader />
-          <main id="main">{children}</main>
+          <main id="main" tabIndex={-1}>
+            {children}
+          </main>
           <SiteFooter />
         </MotionPreferenceProvider>
       </body>
