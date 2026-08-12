@@ -7,6 +7,7 @@
 - `MediaPlayback` owns intersection-based play/pause, poster fallback, and failure state.
 - `PlayerStory` owns selected-player state independently of presentation; scroll, buttons, touch, and keyboard are adapters at the same seam.
 - `OverlayController` owns menu/video focus trapping, Escape handling, scroll locking, and focus restoration.
+- `IntroCompletion` (`intro/intro-signal.ts`) is the pure completion handoff seam: `CinematicIntro` latches it when the opening reaches `complete` (natural end or skip) and `useIntroComplete` reads it, so the hero aperture reveal starts only after the intro finishes.
 
 ## Rules
 
@@ -27,3 +28,10 @@
 | Team | Vertical scroll drives editorial horizontal story | Explicit vertical player sequence |
 | Honours | Slow trophy light/scale around giant `15` | Static composition with brief opacity |
 | History | Sticky year and changing era media | Linear timeline |
+
+The Opening contract is a hard gate for the Hero: `useApertureReveal` waits on
+the `IntroCompletion` signal before it may create any GSAP context, so the
+aperture reveal begins only after the intro reaches `complete` (natural end or
+skip) — never behind the intro layer. Under reduced motion the completion is
+the ≤200ms fade's `animationend`, and the hero keeps its static mask with no
+scrub/parallax.

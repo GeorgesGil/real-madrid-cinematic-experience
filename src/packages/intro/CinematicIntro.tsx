@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useRef } from "react";
 
 import { isReducedMotion } from "@/packages/motion/preference.ts";
 import { useMotionPreference } from "@/packages/motion/use-motion-preference.ts";
@@ -10,6 +10,7 @@ import {
   isIntroComplete,
   shouldPlayIntro,
 } from "./intro.ts";
+import { introCompleteSignal } from "./intro-signal.ts";
 
 /**
  * Client-only cinematic intro adapter over the pure `intro.ts` seam.
@@ -20,8 +21,11 @@ import {
  * `animation-fill-mode: forwards`, so the layer self-dismisses without JS.
  * Escape (and only Escape) and the visible Skip control dispatch `skip`
  * through the seam; on completion the layer unmounts in the same commit and
- * focus hands off to the main landmark. Deliberately not exported from the
- * intro barrel — consumers opt in via `@/packages/intro/CinematicIntro`.
+ * focus hands off to the main landmark. The dismiss `animationend` (natural
+ * trace end or reduced-motion fade — same keyframes name) dispatches
+ * `complete`, so the seam and the completion signal observe the real end even
+ * though the CSS keeps self-dismissal for JS-off. Deliberately not exported
+ * from the intro barrel — consumers opt in via `@/packages/intro/CinematicIntro`.
  */
 export function CinematicIntro() {
   const [state, dispatch] = useReducer(
@@ -31,6 +35,7 @@ export function CinematicIntro() {
   );
   const preference = useMotionPreference();
   const playTrace = shouldPlayIntro(isReducedMotion(preference));
+  const rootRef = useRef<HTMLDivElement>(null);
 
   // Escape (and only Escape) skips the intro while the layer is live; the
   // listener is symmetric and removed on cleanup.
@@ -49,12 +54,36 @@ export function CinematicIntro() {
     };
   }, [state]);
 
-  // The layer unmounts in the same commit as the phase flip; hand focus to
-  // the main landmark after removal so keyboard users land on stable content.
+  // The CSS dismiss animation ends the layer with or without JS; with JS the
+  // `animationend` hands the real end (2.6s natural trace or the 180ms
+  // reduced-motion fade — both animate `cinematic-intro-dismiss`) to the
+  // seam so downstream consumers start exactly when the intro finishes. The
+  // inner trace animation also ends and bubbles, so it is filtered strictly
+  // by animation name.
+  useEffect(() => {
+    const node = rootRef.current;
+    if (isIntroComplete(state) || node === null) {
+      return;
+    }
+    const onAnimationEnd = (event: AnimationEvent) => {
+      if (event.animationName === "cinematic-intro-dismiss") {
+        dispatch({ type: "complete" });
+      }
+    };
+    node.addEventListener("animationend", onAnimationEnd);
+    return () => {
+      node.removeEventListener("animationend", onAnimationEnd);
+    };
+  }, [state]);
+
+  // The layer unmounts in the same commit as the phase flip; publish the
+  // completion signal and hand focus to the main landmark after removal so
+  // keyboard users land on stable content.
   useEffect(() => {
     if (!isIntroComplete(state)) {
       return;
     }
+    introCompleteSignal.emit();
     document.querySelector<HTMLElement>("#main")?.focus();
   }, [state]);
 
@@ -64,6 +93,7 @@ export function CinematicIntro() {
 
   return (
     <div
+      ref={rootRef}
       className="cinematic-intro"
       data-cinematic-intro
       data-trace={playTrace ? "true" : "false"}
