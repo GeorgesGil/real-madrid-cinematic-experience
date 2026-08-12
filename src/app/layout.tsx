@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Inter, Oswald } from "next/font/google";
 
+import { MotionPreferenceProvider } from "@/packages/motion";
 import { SiteFooter, SiteHeader, SkipLink } from "@/packages/ui";
 
 import "./globals.css";
@@ -49,10 +50,12 @@ export default function RootLayout({
       className={`${display.variable} ${sans.variable} ${mono.variable}`}
     >
       <body className="bg-ink font-sans text-white antialiased">
-        <SkipLink />
-        <SiteHeader />
-        <main id="main">{children}</main>
-        <SiteFooter />
+        <MotionPreferenceProvider>
+          <SkipLink />
+          <SiteHeader />
+          <main id="main">{children}</main>
+          <SiteFooter />
+        </MotionPreferenceProvider>
       </body>
     </html>
   );
