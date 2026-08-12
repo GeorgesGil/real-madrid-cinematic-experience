@@ -1,10 +1,19 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 
 import { isReducedMotion } from "./preference.ts";
 import { useMotionPreference } from "./use-motion-preference.ts";
+
+/*
+ * Register ScrollTrigger up front (idempotent) so the scroll sync below never
+ * depends on a scene being mounted. Lenis remains an optional deep-import
+ * adapter: nothing mounts it unless a consumer opts in.
+ */
+gsap.registerPlugin(ScrollTrigger);
 
 /**
  * Options accepted by the installed Lenis build, derived from the constructor
@@ -32,7 +41,12 @@ export function LenisProvider({ children, options }: LenisProviderProps) {
       return;
     }
     const lenis = new Lenis({ autoRaf: true, ...options });
+    const onScroll = () => {
+      ScrollTrigger.update();
+    };
+    lenis.on("scroll", onScroll);
     return () => {
+      lenis.off("scroll", onScroll);
       lenis.destroy();
     };
   }, [preference, options]);
