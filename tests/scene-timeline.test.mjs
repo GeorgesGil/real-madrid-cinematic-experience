@@ -146,9 +146,14 @@ test("page.tsx mounts SceneTimeline and stays a server component", async () => {
   assert.match(page, /from\s+["']@\/packages\/motion\/SceneTimeline["']/);
   assert.match(page, /<SceneTimeline>/);
   assert.match(page, /<\/SceneTimeline>/);
-  assert.match(page, /data-parallax/);
   assert.doesNotMatch(page, /"use client"/);
   assert.doesNotMatch(page, /gsap/);
+});
+
+test("Hero.tsx carries the parallax copy block for the SceneTimeline tween", async () => {
+  const hero = await read("src/packages/hero/Hero.tsx");
+  assert.match(hero, /data-parallax/);
+  assert.match(hero, /hero-copy/);
 });
 
 // --- dependency contract ---

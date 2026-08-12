@@ -234,3 +234,132 @@ body {
   background: var(--gold);
   color: var(--ink);
 }
+
+/*
+ * Monumental Aperture hero scene (src/packages/hero/Hero.tsx). The frame owns
+ * the navy field and clips every decorative layer; geometry scales from SVG
+ * viewBoxes, so the scene cannot overflow at any viewport width. The static
+ * composition renders in SSR HTML; the aperture reveal is a client-only
+ * enhancement gated by the same heroSceneQuery as the SceneTimeline pin.
+ */
+.hero-frame {
+  min-height: 100svh;
+  overflow: hidden;
+  background:
+    radial-gradient(64rem 36rem at 78% 6%, var(--navy) 0%, transparent 72%),
+    linear-gradient(180deg, var(--ink) 0%, var(--navy) 140%);
+}
+
+.hero-container {
+  display: flex;
+  min-height: 100svh;
+  align-items: flex-end;
+}
+
+.hero-copy {
+  max-width: 38rem;
+  padding-block-end: var(--section-space);
+}
+
+.hero-kicker {
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.hero-title {
+  margin-block-start: 1rem;
+  font-family: var(--font-oswald), sans-serif;
+  font-size: var(--text-display);
+  line-height: 0.95;
+  color: var(--white);
+}
+
+.hero-summary {
+  margin-block-start: 1.25rem;
+  max-width: 32rem;
+  font-size: var(--text-body);
+  line-height: 1.7;
+  color: var(--silver);
+}
+
+/*
+ * Decorative mask layer: the stadium arch as inline stroke linework. It sits
+ * above the copy as a static layer in SSR HTML; under desktop no-preference
+ * motion the client adapter enlarges it once and dissolves it into the full
+ * scene. `pointer-events: none` keeps it purely decorative.
+ */
+.hero-aperture {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--silver);
+  pointer-events: none;
+}
+
+.hero-aperture-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-aperture-svg path {
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hero-aperture-svg .hero-aperture-rib {
+  opacity: 0.4;
+}
+
+.hero-aperture-svg .hero-aperture-gold {
+  stroke: var(--gold);
+  opacity: 0.85;
+}
+
+/*
+ * Oversized RM linework (src/packages/hero/Monogram.tsx): decorative letters
+ * in the licensed display face, stroked as architectural linework.
+ */
+.hero-monogram {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--silver);
+  pointer-events: none;
+}
+
+.hero-monogram-svg {
+  display: block;
+  width: min(72vw, 46rem);
+  height: auto;
+}
+
+.hero-monogram-svg text {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  font-family: var(--font-oswald), sans-serif;
+  font-size: 320px;
+}
+
+/*
+ * Reduced-motion contract (docs/visual-direction.md Signature): the aperture
+ * stays a fully opaque, untransformed static mask. The reveal adapter already
+ * no-ops via heroSceneQuery; this rule defensively guarantees the static
+ * composition against any stray inline transform or opacity state.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .hero-aperture {
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+}
