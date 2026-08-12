@@ -6,9 +6,7 @@ export default function Home() {
       <SceneFrame>
         <Container className="flex min-h-[70svh] items-end">
           <div className="max-w-2xl pb-[var(--section-space)]">
-            <p
-              className="font-mono text-xs uppercase tracking-[0.3em] text-gold"
-            >
+            <p className="font-mono text-xs uppercase tracking-[0.3em] text-gold">
               Independent cinematic concept
             </p>
             <h1
